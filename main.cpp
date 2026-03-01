@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <cstdlib>
+#include <cmath>
 
 // so i dont have to put std everywhere
 using namespace std;
@@ -74,10 +74,6 @@ int main() {
     }
 }
 
-double leaveOneOutCrossValidation(const vector<vector<double>>& features, const vector<int>& classes, const vector<int>& currentSet, int featureToAdd){
-    return static_cast<double>(rand()) / static_cast<double>(RAND_MAX) * 100;        // random % from 0-100
-}
-
 void forwardSelection(const vector<vector<double>>& features, vector<int> classes){
     int numFeatures = features[0].size();
     vector<int> currentSetOfFeatures;
@@ -102,7 +98,7 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
 
                 double accuracy = leaveOneOutCrossValidation(features, classes, currentSetOfFeatures, k);   // Checks the current feature using leave-one-out test
 
-                if (accuracy > bestAccuracy){   // if currentAccuracy is better than the known best, update
+                if (accuracy > bestAccuracy){   // if current accuracy is better than the known best, update
                     bestAccuracy = accuracy;
                     featureToAdd = k;
                 }
@@ -116,4 +112,57 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
 
 void backwardsElimination(const vector<vector<double>>& features, vector<int> classes){
     cout << "backward selection" << endl;
+}
+
+double leaveOneOutCrossValidation(const vector<vector<double>>& features, const vector<int>& classes, const vector<int>& currentSet, int featureToAdd){
+    int numCorrectlyClassified = 0;
+
+    for (int i = 0; i < features.size(); i++){              // traverses each feature for the leave one out. All the other points are treated as data
+        int labelObjectToClassify = classes[i];             // remembers the real classification
+
+        double nearestNeighborDistance = INFINITY;          // initialized at large distance to be immediately replaced
+        int nearestNeighborLocation = 0;
+        int nearestNeighborLabel = 0;
+
+        for (int k = 0; k < features.size(); k++){          // makes comparisons of current against all other points
+            if (k != i){                                    // skips self comparisons
+                
+                // Compute Distance
+                double sumSquaredDistance = 0.0;   
+                for (int j = 0; j < currentSet.size(); j++){ // loops the selected features
+                    int featureIndex = currentSet[j] - 1;    // Shift since feature 1 = index 0 
+                    
+                    // distance = sqrt(sum((object_to_classify - data(k,2:end)).^2))
+                    double difference = features[i][featureIndex] - features[k][featureIndex];   // The difference in features compared
+                    sumSquaredDistance += difference * difference;     // squared difference added to the total over each iteration
+                }
+
+                // FORWARD SELECTION
+                if (featureToAdd != 0){     // skip backwards elimination. It isn't adding a feature so it's always 0
+                    // includes the feature in the test
+                    int featureIndex = featureToAdd - 1;
+                    double difference = features[i][featureIndex] - features[k][featureIndex];
+                    sumSquaredDistance += difference * difference;
+                }
+
+                double distance = sqrt(sumSquaredDistance);    // square root of summed squared differences between features
+                
+                // UPDATE, check if its the closest neighbor
+                if (distance < nearestNeighborDistance){  // if current distance is closer
+                    nearestNeighborDistance = distance;   // then update
+                    // save the location and class for predicting
+                    nearestNeighborLocation = k;
+                    nearestNeighborLabel = classes[nearestNeighborLocation];
+                }
+            }
+        }
+
+        // If the prediction matches the remembered label, increment
+        if (labelObjectToClassify == nearestNeighborLabel){
+            numCorrectlyClassified++;
+        }
+    }
+    // Accuracy computation
+    double accuracy = static_cast<double>(numCorrectlyClassified) / features.size();    // num correct classified features / total features
+    return accuracy * 100;
 }
