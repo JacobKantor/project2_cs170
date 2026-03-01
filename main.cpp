@@ -58,13 +58,20 @@ int main() {
     int myInstances = features.size();   // number of clusters
     int myFeatures = features[0].size();// number of features in first cluster
     double myAccuracy = 0.0;
+
+    // compile all features for nearest neighbor accuracy check
+    vector<int> allFeatures;
+    for (int i = 1; i <= myFeatures; i++){
+        allFeatures.push_back(i);
+    }
+    myAccuracy = leaveOneOutCrossValidation(features, classes, allFeatures, 0);
     
     // calc features, instances, and percent
-    cout << "This dataset has " << myFeatures << "features (not including the class attribute), with " << myInstances << "instances." << endl;
-    cout << "Running nearest neighbor with all 4 features, using \"leaving-one-out\" evaluation, I get an accuracy of " << myAccuracy << "%" << endl;
-    cout << "Beginning search." << endl;
+    cout << "This dataset has " << myFeatures << " features (not including the class attribute), with " << myInstances << "instances." << endl;
+    cout << "Running nearest neighbor with all " << myFeatures << " features, using \"leaving-one-out\" evaluation, I get an accuracy of " << myAccuracy << "%" << endl;
 
-    // run search alg
+    // run search algorithms
+    cout << "Beginning search." << endl;
     if (myAlg == 1){
         cout << "Forward Selection" << endl;
         forwardSelection(features, classes);
@@ -77,6 +84,8 @@ int main() {
 void forwardSelection(const vector<vector<double>>& features, vector<int> classes){
     int numFeatures = features[0].size();
     vector<int> currentSetOfFeatures;
+    vector<int> bestFeatureSet;
+    double maxAccuracy = 0.0;
 
     for (int i = 1; i <= numFeatures; i++){     // i traverses each level (number of features) of the search tree
         cout << "On the " << i << "th level of the search tree" << endl;
@@ -97,6 +106,13 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
                 cout << "--Considering adding the " << k << " feature" << endl;
 
                 double accuracy = leaveOneOutCrossValidation(features, classes, currentSetOfFeatures, k);   // Checks the current feature using leave-one-out test
+                
+                // output the current features
+                cout << "Using feature(s) {";
+                for (int f = 0; f < currentSetOfFeatures.size(); f++){
+                    cout << currentSetOfFeatures[f] << ",";
+                }
+                cout << k << "} accuracy is " << accuracy << "%" << endl;
 
                 if (accuracy > bestAccuracy){   // if current accuracy is better than the known best, update
                     bestAccuracy = accuracy;
@@ -105,9 +121,32 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
             } 
         }
         currentSetOfFeatures.push_back(featureToAdd);       // adds the the current feature
-
-        cout << "On level " << i << " I added feature " << featureToAdd << " to current set" << endl;
+        
+        // output features set
+        cout << "Feature set {";
+        for (int f = 0; f < currentSetOfFeatures.size(); f++){
+            cout << currentSetOfFeatures[f];
+            if (f != currentSetOfFeatures.size() - 1){
+                cout << ",";
+            }
+        }
+        cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
+        if (bestAccuracy > maxAccuracy){
+            maxAccuracy = bestAccuracy;
+            bestFeatureSet = currentSetOfFeatures;
+        }
+        // cout << "On level " << i << " I added feature " << featureToAdd << " to current set" << endl;
     }
+
+    // output the best set pf features
+    cout << "Finished search!! The best feature subset is {";
+    for (int i = 0; i < bestFeatureSet.size(); i++){
+        cout << bestFeatureSet[i];
+        if (i != bestFeatureSet.size() - 1){
+            cout << ",";
+        }
+    }
+    cout << "}, which has an accuracy of " << maxAccuracy << "%" << endl;
 }
 
 void backwardsElimination(const vector<vector<double>>& features, vector<int> classes){
