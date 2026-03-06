@@ -3,9 +3,12 @@
 #include <sstream>
 #include <vector>
 #include <cmath>
+#include <iomanip>
+#include <chrono>
 
 // so i dont have to put std everywhere
 using namespace std;
+using namespace std::chrono;
 
 // function stubs forward declaration for reading code sequentially
 double leaveOneOutCrossValidation(const vector<vector<double>>& features, const vector<int>& classes, const vector<int>& currentSet, int featureToAdd);
@@ -14,6 +17,7 @@ void backwardsElimination(const vector<vector<double>>& features, vector<int>& c
 
 int main() {
     
+    cout << fixed << setprecision(1);   // used for rounding my outputs for accuracy to the tenths place of precision (doesn't truncate)
     vector<int> classes;                // column from the txt file indicating class (1/2)
     vector<vector<double>> features;    // 2D table of "label: feature1, feature2, etc." for all other columns contain features
     
@@ -72,12 +76,19 @@ int main() {
 
     // run search algorithms
     cout << "Beginning search." << endl;
+    // declare clock start and stop variables
+    high_resolution_clock::time_point start;
+    high_resolution_clock::time_point stop;
+    start = high_resolution_clock::now();                  // starts the timer
     if (myAlg == 1){
         cout << "Forward Selection" << endl;
         forwardSelection(features, classes);
     }else{
         backwardsElimination(features, classes, allFeatures);
     }
+    stop = high_resolution_clock::now();                // ends timer
+    duration<double, ratio<60>> duration = stop - start;    // converts the difference of time to double milliseconds type
+    cout << "\n\nCompletion Time: " << duration.count() << " minutes" << endl;
 }
 
 void forwardSelection(const vector<vector<double>>& features, vector<int>& classes){
