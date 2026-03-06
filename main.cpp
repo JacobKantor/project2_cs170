@@ -9,8 +9,8 @@ using namespace std;
 
 // function stubs forward declaration for reading code sequentially
 double leaveOneOutCrossValidation(const vector<vector<double>>& features, const vector<int>& classes, const vector<int>& currentSet, int featureToAdd);
-void forwardSelection(const vector<vector<double>>& features, vector<int> classes);
-void backwardsElimination(const vector<vector<double>>& features, vector<int> classes);
+void forwardSelection(const vector<vector<double>>& features, vector<int>& classes);
+void backwardsElimination(const vector<vector<double>>& features, vector<int>& classes, vector<int> currentSetOfFeatures);
 
 int main() {
     
@@ -76,12 +76,11 @@ int main() {
         cout << "Forward Selection" << endl;
         forwardSelection(features, classes);
     }else{
-        cout << "Backward Elimination" << endl;
-        // backwardElimination(features, classes);
+        backwardsElimination(features, classes, allFeatures);
     }
 }
 
-void forwardSelection(const vector<vector<double>>& features, vector<int> classes){
+void forwardSelection(const vector<vector<double>>& features, vector<int>& classes){
     int numFeatures = features[0].size();
     vector<int> currentSetOfFeatures;
     vector<int> bestFeatureSet;
@@ -131,7 +130,10 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
             }
         }
         cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
-        if (bestAccuracy > maxAccuracy){
+        if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
+            cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+        }
+        if (bestAccuracy > maxAccuracy){    // update best accuracy when new one is found
             maxAccuracy = bestAccuracy;
             bestFeatureSet = currentSetOfFeatures;
         }
@@ -148,8 +150,64 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
     cout << "}, which has an accuracy of " << maxAccuracy << "%" << endl;
 }
 
-void backwardsElimination(const vector<vector<double>>& features, vector<int> classes){
-    cout << "backward selection" << endl;
+void backwardsElimination(const vector<vector<double>>& features, vector<int>& classes, vector<int> currentSetOfFeatures){
+    int numFeatures = features[0].size();
+    vector<int> bestFeatureSet;
+    double maxAccuracy = 0.0;
+
+    for (int i = numFeatures; i > 0; i--){     // i traverses each level (number of features) of the search tree for the one removed feature
+        int featureToRemove = -1;           // index of the feature to be removed
+        double bestAccuracy = 0.0;      // Compared with current best accuracy, and updates if new best found
+
+        for (int k = 0; k < currentSetOfFeatures.size(); k++){ // check removing each feature currently in the set one by one
+            vector<int> removedFeatureSet = currentSetOfFeatures;
+            removedFeatureSet.erase(removedFeatureSet.begin() + k);     // removes the kth feature from a temporary set, without modifying the original set
+            double accuracy = leaveOneOutCrossValidation(features, classes, removedFeatureSet, 0);   // Checks the current feature using leave-one-out test
+            
+            // output the current features after the removed check
+            cout << "     Using feature(s) {";
+            for (int f = 0; f < removedFeatureSet.size(); f++){
+                cout << removedFeatureSet[f];
+                if (f != removedFeatureSet.size() - 1){
+                    cout << ",";
+                }
+            }
+            cout << "} accuracy is " << accuracy << "%" << endl;
+
+            if (accuracy > bestAccuracy){   // if current accuracy is better than the known best, update
+                bestAccuracy = accuracy;
+                featureToRemove = k;
+            }
+        }
+        currentSetOfFeatures.erase(currentSetOfFeatures.begin() + featureToRemove);       // removes the identified kth feature
+        
+        // output features set
+        cout << "Feature set {";
+        for (int f = 0; f < currentSetOfFeatures.size(); f++){
+            cout << currentSetOfFeatures[f];
+            if (f != currentSetOfFeatures.size() - 1){
+                cout << ",";
+            }
+        }
+        cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
+        if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
+            cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+        }
+        if (bestAccuracy > maxAccuracy){    // update best accuracy when new one is found
+            maxAccuracy = bestAccuracy;
+            bestFeatureSet = currentSetOfFeatures;
+        }
+    }
+
+    // output the best set pf features
+    cout << "Finished search!! The best feature subset is {";
+    for (int i = 0; i < bestFeatureSet.size(); i++){
+        cout << bestFeatureSet[i];
+        if (i != bestFeatureSet.size() - 1){
+            cout << ",";
+        }
+    }
+    cout << "}, which has an accuracy of " << maxAccuracy << "%" << endl;
 }
 
 double leaveOneOutCrossValidation(const vector<vector<double>>& features, const vector<int>& classes, const vector<int>& currentSet, int featureToAdd){
@@ -175,7 +233,7 @@ double leaveOneOutCrossValidation(const vector<vector<double>>& features, const 
                     sumSquaredDistance += difference * difference;     // squared difference added to the total over each iteration
                 }
 
-                // FORWARD SELECTION
+                // FORWARD SELECTION check
                 if (featureToAdd != 0){     // skip backwards elimination. It isn't adding a feature so it's always 0
                     // includes the feature in the test
                     int featureIndex = featureToAdd - 1;
