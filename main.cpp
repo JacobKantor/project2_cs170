@@ -67,7 +67,7 @@ int main() {
     myAccuracy = leaveOneOutCrossValidation(features, classes, allFeatures, 0);
     
     // calc features, instances, and percent
-    cout << "This dataset has " << myFeatures << " features (not including the class attribute), with " << myInstances << "instances." << endl;
+    cout << "This dataset has " << myFeatures << " features (not including the class attribute), with " << myInstances << " instances." << endl;
     cout << "Running nearest neighbor with all " << myFeatures << " features, using \"leaving-one-out\" evaluation, I get an accuracy of " << myAccuracy << "%" << endl;
 
     // run search algorithms
@@ -87,8 +87,10 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
     vector<int> bestFeatureSet;
     double maxAccuracy = 0.0;
 
+    double emptySetAccuracy = leaveOneOutCrossValidation(features, classes, currentSetOfFeatures, 0);
+    cout << "Using feature(s) {} accuracy is " << emptySetAccuracy << "%" << endl;
+
     for (int i = 1; i <= numFeatures; i++){     // i traverses each level (number of features) of the search tree
-        cout << "On the " << i << "th level of the search tree" << endl;
         int featureToAdd = 0;           // updates to the current feature checked for adding
         double bestAccuracy = 0.0;      // Compared with current best accuracy, and updates if new best found
 
@@ -103,12 +105,10 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
             }
             
             if (alreadyAdded == 0){ // if not already added
-                cout << "--Considering adding the " << k << " feature" << endl;
-
                 double accuracy = leaveOneOutCrossValidation(features, classes, currentSetOfFeatures, k);   // Checks the current feature using leave-one-out test
                 
                 // output the current features
-                cout << "Using feature(s) {";
+                cout << "     Using feature(s) {";
                 for (int f = 0; f < currentSetOfFeatures.size(); f++){
                     cout << currentSetOfFeatures[f] << ",";
                 }
@@ -135,7 +135,6 @@ void forwardSelection(const vector<vector<double>>& features, vector<int> classe
             maxAccuracy = bestAccuracy;
             bestFeatureSet = currentSetOfFeatures;
         }
-        // cout << "On level " << i << " I added feature " << featureToAdd << " to current set" << endl;
     }
 
     // output the best set pf features
