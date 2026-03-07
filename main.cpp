@@ -133,21 +133,24 @@ void forwardSelection(const vector<vector<double>>& features, vector<int>& class
         }
         currentSetOfFeatures.push_back(featureToAdd);       // adds the the current feature
         
-        // output features set
-        cout << "Feature set {";
-        for (int f = 0; f < currentSetOfFeatures.size(); f++){
-            cout << currentSetOfFeatures[f];
-            if (f != currentSetOfFeatures.size() - 1){
-                cout << ",";
-            }
-        }
-        cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
-        if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
-            cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
-        }
         if (bestAccuracy > maxAccuracy){    // update best accuracy when new one is found
             maxAccuracy = bestAccuracy;
             bestFeatureSet = currentSetOfFeatures;
+        }
+
+        // output features set, unless its the last iteration
+        if (i != numFeatures){
+            cout << "Feature set {";
+            for (int f = 0; f < currentSetOfFeatures.size(); f++){
+                cout << currentSetOfFeatures[f];
+                if (f != currentSetOfFeatures.size() - 1){
+                    cout << ",";
+                }
+            }
+            cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
+            if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
+                cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+            }
         }
     }
 
@@ -193,21 +196,24 @@ void backwardsElimination(const vector<vector<double>>& features, vector<int>& c
         }
         currentSetOfFeatures.erase(currentSetOfFeatures.begin() + featureToRemove);       // removes the identified kth feature
         
-        // output features set
-        cout << "Feature set {";
-        for (int f = 0; f < currentSetOfFeatures.size(); f++){
-            cout << currentSetOfFeatures[f];
-            if (f != currentSetOfFeatures.size() - 1){
-                cout << ",";
-            }
-        }
-        cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
-        if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
-            cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
-        }
         if (bestAccuracy > maxAccuracy){    // update best accuracy when new one is found
             maxAccuracy = bestAccuracy;
             bestFeatureSet = currentSetOfFeatures;
+        }
+        
+        // output features set, if not the last iteration
+        if (i != numFeatures){
+            cout << "Feature set {";
+            for (int f = 0; f < currentSetOfFeatures.size(); f++){
+                cout << currentSetOfFeatures[f];
+                if (f != currentSetOfFeatures.size() - 1){
+                    cout << ",";
+                }
+            }
+            cout << "} was best, accuracy is " << bestAccuracy << "%" << endl;
+            if (bestAccuracy < maxAccuracy){    // If the accuracy decreases
+                cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+            }
         }
     }
 
@@ -238,7 +244,7 @@ double leaveOneOutCrossValidation(const vector<vector<double>>& features, const 
                 // Compute Distance
                 double sumSquaredDistance = 0.0;   
                 for (int j = 0; j < currentSet.size(); j++){ // loops the selected features
-                    int featureIndex = currentSet[j] - 1;    // Shift since feature 1 = index 0 
+                    int featureIndex = currentSet[j] - 1;    // Shift since feature 1 = index 0 for calcuating the distance
                     
                     // distance = sqrt(sum((object_to_classify - data(k,2:end)).^2))
                     double difference = features[i][featureIndex] - features[k][featureIndex];   // The difference in features compared
