@@ -75,7 +75,7 @@ int main() {
     cout << "Running nearest neighbor with all " << myFeatures << " features, using \"leaving-one-out\" evaluation, I get an accuracy of " << myAccuracy << "%" << endl;
 
     // run search algorithms
-    cout << "Beginning search." << endl;
+    cout << "Beginning search: ";
     // declare clock start and stop variables
     high_resolution_clock::time_point start;
     high_resolution_clock::time_point stop;
@@ -84,11 +84,12 @@ int main() {
         cout << "Forward Selection" << endl;
         forwardSelection(features, classes);
     }else{
+        cout << "Backward Elimination" << endl;
         backwardsElimination(features, classes, allFeatures);
     }
     stop = high_resolution_clock::now();                // ends timer
     duration<double, ratio<60>> duration = stop - start;    // converts the difference of time to double milliseconds type
-    cout << "\n\nCompletion Time: " << duration.count() << " minutes" << endl;
+    cout << "\nCompletion Time: " << duration.count() << " minutes" << endl;
 }
 
 void forwardSelection(const vector<vector<double>>& features, vector<int>& classes){
