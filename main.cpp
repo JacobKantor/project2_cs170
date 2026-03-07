@@ -28,7 +28,7 @@ int main() {
     cout << "Type in the name of the file to test : " << endl;
     cin >> fileName;
 
-    cout << "Type the nubmer of algorithm you want to run." << endl;
+    cout << "Type the number of the algorithm you want to run." << endl;
     cout << "\t1) Forward Selection" << endl;
     cout << "\t2) Backward Elimination" << endl;
     cin >> myAlg;
